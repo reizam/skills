@@ -1,11 +1,11 @@
 ---
 name: evaluate
-description: Use when a pull request, an unpushed branch, or a written spec must be tried before it is trusted — seven sealed jurors instructed in parallel, one ranked verdict, nothing written to the code.
+description: Use when a pull request, an unpushed branch, or a written spec must be tried before it is trusted — nine sealed jurors instructed in parallel, one ranked verdict, nothing written to the code.
 ---
 
 # Evaluate
 
-The work is the accused. Seven jurors each instruct one count, in isolation, and
+The work is the accused. Nine jurors each instruct one count, in isolation, and
 the court returns a single ranked verdict. Nothing is committed, no issue is
 filed, no line is fixed: the tribunal judges and reports.
 
@@ -34,9 +34,9 @@ instructions — `CLAUDE.md`, `AGENTS.md`, and whatever they point at for the
 surface being touched. Write the dossier to one file in the scratchpad and pass
 its path to every juror, so all seven try the same frozen thing.
 
-## 2. Convene the seven
+## 2. Convene the nine
 
-Dispatch all seven in a **single message**, one `Agent` call each, so they run
+Dispatch all nine in a **single message**, one `Agent` call each, so they run
 concurrently and none can see another's reasoning. Convene every count on every
 target: a count with no material returns *nothing to charge*, which is cheap
 and is a real answer.
@@ -50,14 +50,20 @@ and is a real answer.
 | `state-of-the-art` | the deprecated API, the idiom the upstream docs retired |
 | `blast-radius` | tenancy, permissions, visibility, migrations, rollback |
 | `surface` | secrets, injection, the authorization the change exposes |
+| `dry` | what this rebuilds that the codebase already has |
+| `elegance` | the abstraction nobody needed, the flexibility no caller uses |
 
 Each juror's prompt carries the dossier path, its own count name, and this
 instruction: read your section of the `CHARGES.md` beside this skill and return
 only that section's verdict shape. The president reads none of them.
 
+Give `dry` and `elegance` the largest model available. They are the two counts
+that pay for judgment rather than for looking, and a fast tier spends the call
+without buying it.
+
 ## 3. Deliberate
 
-The president receives seven returns and does four things:
+The president receives nine returns and does four things:
 
 - **Strike what left its lane.** A finding outside the juror's own count is
   struck, not promoted: it was made without the dossier reading that count
@@ -70,6 +76,9 @@ The president receives seven returns and does four things:
   `to fix` — real, and cheap to repair before it lands. `noted` — true,
   non-blocking, recorded for the record.
 
+  `dry` and `elegance` rank `to fix` at the highest. They judge quality, not
+  defect: a verdict that blocks on taste stops being read.
+
 ## 4. Return the verdict
 
 One document, ranked, findings first. Each entry carries: count, `file:line`,
@@ -78,7 +87,7 @@ and why it failed, and the smallest change that answers it. Close with the
 frozen target — head SHA or merge-base — and the counts that returned nothing
 to charge, named one by one.
 
-The trial is complete when all seven counts have returned and every surviving
+The trial is complete when all nine counts have returned and every surviving
 finding carries either an executable command or a quoted excerpt as its
 evidence. A finding whose evidence is a paraphrase is struck.
 

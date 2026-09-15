@@ -189,3 +189,60 @@ may read it.
 
 Refutation to attempt: the input is already constrained by the type or guard
 upstream, or the value is not secret.
+
+## dry
+
+Prosecute what this rebuilds. **Search the codebase; do not read the diff for
+this.** Duplication is invisible from inside the change — the thing already
+solved lives in a file the diff never opens, under a name the author did not
+know to grep for. Work from the behaviour: name what the change does, then hunt
+the module, helper, hook or query that already does it.
+
+Three shapes:
+
+- **Reimplementation** — the repository already has this. Name it with its path
+  and say what the diff should call instead.
+- **Three and counting** — three or more near-identical blocks, inside the diff
+  or between the diff and its neighbours. Name the extraction and where it
+  belongs.
+- **The near-miss** — something close already exists and this diff forked it
+  rather than extending it. Say which of the two survives.
+
+Duplication that is real beats duplication that is speculative: two blocks that
+merely rhyme are not a charge, and an extraction that would need a flag
+parameter to serve both callers is worse than the repetition.
+
+On a spec: the charge is a design that describes building what the system
+already has.
+
+Refutation to attempt: the existing code is close but its contract genuinely
+differs, or coupling the two would bind things that must move separately.
+
+## elegance
+
+Prosecute what could be deleted with nothing lost. The strongest finding this
+count returns is a smaller diff that does the same thing.
+
+- **Dead flexibility** — a parameter, option, hook or generic that no caller
+  uses. Built for a future nobody has asked for.
+- **The clever path** — a construct that takes a second reading, where a plain
+  one reads once and behaves identically.
+- **Premature abstraction** — an interface, base class or indirection layer
+  with exactly one implementation.
+- **Ceremony** — state that could be derived, a synchronisation that a
+  computed value removes, an intermediate object that only forwards.
+- **The unexplained constant** — a number or string that decides behaviour and
+  carries no name.
+
+Name the concrete deletion or replacement, not a preference. "This would read
+better" is not a finding; "these fourteen lines collapse to this call, same
+behaviour" is.
+
+Style already enforced by a formatter or linter is not yours — the machine has
+it, and spending attention there costs the counts that need it.
+
+On a spec: the charge is a design carrying moving parts that its own acceptance
+criteria never exercise.
+
+Refutation to attempt: the flexibility has a named caller coming in the same
+milestone, or the simple version fails a case the diff handles.
