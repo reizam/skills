@@ -16,6 +16,7 @@ One copy on disk, three agents reading it. `git pull` updates all of them.
 | [`/aim`](skills/aim) | Turns a loose intention into a brief an autonomous run can be trusted with — a terminal state that is a command, a verification loop, a journal, and all three stopping conditions. Refuses the work that does not belong in a loop. |
 | [`/brainstorm`](skills/brainstorm) | Runs superpowers' design dialogue to its written spec, then tries that spec with `/evaluate` before a line of code exists. |
 | [`/evaluate`](skills/evaluate) | Tries a pull request, a branch or a spec before you trust it. Nine jurors, one count each, instructed in parallel and sealed from one another; returns one ranked verdict and writes nothing. |
+| [`/pair-design`](skills/pair-design) | Works the look and feel of a surface live with the developer — asks, shows two or three variants as inline mockups, applies one atomic change per turn and commits it, then runs the whole verification gate once at the end. |
 | [`/innovate`](skills/innovate) | Takes a half-formed idea, opens three genuinely distinct directions, weighs each honestly, and rules on the one that ships — ending on a single decision. |
 
 `/brainstorm` requires `superpowers:brainstorming`; everything else stands alone.
