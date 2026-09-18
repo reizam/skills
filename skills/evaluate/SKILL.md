@@ -16,6 +16,10 @@ and they govern everything below: a juror reports its own count and stays
 silent on the rest, and a finding raised by one juror alone stands on its own
 evidence.
 
+When only one subagent can be spent on the trial — a loop iteration, a
+small target — convene the single-juror form in [`SOLO.md`](SOLO.md) instead
+of §2; the dossier and the deliberation are the same.
+
 ## 1. Instruct the dossier
 
 Freeze one target and build the dossier every juror will read. The three
