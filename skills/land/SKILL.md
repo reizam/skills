@@ -1,6 +1,6 @@
 ---
 name: land
-description: Use when a loop iteration must take every open pull request to merged — red heads handed to a fixer, green heads tried by one solo juror, the go merged, the dangerous ones put to Karl as merge, hold or close.
+description: Use when a loop iteration must take every open pull request to merged — red heads handed to a fixer, green heads reviewed in proportion to size and risk, the go merged, the dangerous ones put to Karl as merge, hold or close.
 ---
 
 # Land
@@ -65,12 +65,25 @@ on. The next iteration reads the new head from §2.
 Widening an assertion, skipping a test, or a `--no-verify` push is not a fix;
 a fixer that returns one gets the branch back with the finding restated.
 
-## 4. Green: convene the solo juror
+## 4. Green: size the independent review
 
-One `Agent` call, the largest model available, running
-[`evaluate/SOLO.md`](../evaluate/SOLO.md) on the pinned head. It returns a
-ranked verdict: `blocking`, `to fix`, `noted`, and the counts with nothing to
-charge.
+Read the diff and `gh pr view <N> --json additions,deletions,files`. Count
+`additions + deletions` and changed files, including tests. Select one tier
+before convening the juror:
+
+| Tier | Bound | Counts, in order |
+|---|---|---|
+| **Quick** | At most 150 changed lines and 5 files; no danger below, concurrency/shared-state change, external-input handling or hot path | `coherence`, `omission`, `proof` |
+| **Standard** | At most 500 changed lines and 12 files; none of the full-review triggers | `coherence`, `omission`, `proof`, `blast-radius`, `surface` |
+| **Full** | Anything larger; any danger below; concurrency/shared state, external-input handling, hot path, or a diff the juror cannot hold in one reading | All nine counts in [`evaluate/SOLO.md`](../evaluate/SOLO.md) |
+
+One independent `Agent` call runs [`evaluate/SOLO.md`](../evaluate/SOLO.md)
+with the chosen counts on the pinned head. Give it the tier and the counts;
+the fixer never judges its own work. The juror returns `blocking`, `to fix`,
+`noted`, and which selected counts found nothing. A quick or standard proof
+runs the targeted tests and checks the claimed red state on the preceding
+head; green CI already supplies the broad suite. Escalate to full when the
+targeted proof or diff reveals a wider failure mode.
 
 - Any `blocking` or `to fix` → §3, with the verdict as the fixer's brief. The
   fixer answers every entry or refutes it in writing; a refutation the next
