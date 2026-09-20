@@ -22,18 +22,6 @@ One copy on disk, three agents reading it. `git pull` updates all of them.
 
 `/brainstorm` requires `superpowers:brainstorming`; everything else stands alone.
 
-### Moved in, not yet renamed
-
-Brought over from `~/.agents` and `~/.claude` so they are versioned rather than
-loose on one machine. The rites among them still carry their old names and owe
-the verb form; the references are already correctly nouns.
-
-Rites awaiting a verb: `oneshot`, `quick-feature`, `oss-contribute`,
-`linkedin-post`, `tiepolo-import`, `neo`, `neo-recover`, `neo-supervisor`.
-
-References, correctly named: `form-system`, `hyperframes`, `rilaykit`,
-`stndrds-schema`.
-
 ## Naming
 
 Two registers, and the name tells you which one you are looking at.
