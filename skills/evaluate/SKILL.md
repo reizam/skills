@@ -9,16 +9,14 @@ The work is the accused. Nine jurors each instruct one count, in isolation, and
 the court returns a single ranked verdict. Nothing is committed, no issue is
 filed, no line is fixed: the tribunal judges and reports.
 
-Measured across four review tools on 617 findings, **93.4% were raised by
-exactly one reviewer** and almost none by three. Coverage comes from
-cloistering the counts, not from more eyes on the same one. Two rules follow
-and they govern everything below: a juror reports its own count and stays
-silent on the rest, and a finding raised by one juror alone stands on its own
-evidence.
+Across four review tools and 617 findings, 93.4% were raised by exactly one
+reviewer: coverage comes from cloistering the counts, not from more eyes on the
+same one. So a juror reports its own count alone, and a finding raised by one
+juror stands on its own evidence.
 
-When only one subagent can be spent on the trial — a loop iteration, a
-small target — convene the single-juror form in [`SOLO.md`](SOLO.md) instead
-of §2; the dossier and the deliberation are the same.
+When only one subagent can be spent on the trial — a loop iteration, a small
+target — convene the single-juror form in [`SOLO.md`](SOLO.md) instead of §2;
+the dossier and the deliberation are the same.
 
 ## 1. Instruct the dossier
 
@@ -36,11 +34,11 @@ targets differ only in how the dossier is assembled:
 Add the originating issue when there is one, and the project's own agent
 instructions — `CLAUDE.md`, `AGENTS.md`, and whatever they point at for the
 surface being touched. Write the dossier to one file in the scratchpad and pass
-its path to every juror, so all seven try the same frozen thing.
+its path to every juror, so all nine try the same frozen thing.
 
 ## 2. Convene the nine
 
-Dispatch all nine in a **single message**, one `Agent` call each, so they run
+Dispatch all nine in a **single message**, one subagent each, so they run
 concurrently and none can see another's reasoning. Convene every count on every
 target: a count with no material returns *nothing to charge*, which is cheap
 and is a real answer.
@@ -69,9 +67,10 @@ without buying it.
 
 The president receives nine returns and does four things:
 
-- **Strike what left its lane.** A finding outside the juror's own count is
-  struck, not promoted: it was made without the dossier reading that count
-  demands.
+- **Strike what left its lane, and what is paraphrased.** A finding outside
+  the juror's own count was made without the dossier reading that count
+  demands. A finding whose evidence is a summary of the code rather than the
+  code has no evidence.
 - **Merge the overlaps.** When two counts land on the same lines from different
   angles, keep the higher rank and name both angles in one entry.
 - **Keep the singletons.** One juror is sufficient authority. Corroboration
@@ -80,29 +79,12 @@ The president receives nine returns and does four things:
   `to fix` — real, and cheap to repair before it lands. `noted` — true,
   non-blocking, recorded for the record.
 
-  `dry` and `elegance` rank `to fix` at the highest. They judge quality, not
-  defect: a verdict that blocks on taste stops being read.
-
 ## 4. Return the verdict
 
-One document, ranked, findings first. Each entry carries: count, `file:line`,
-what breaks and under which input or state, the refutation the juror attempted
-and why it failed, and the smallest change that answers it. Close with the
-frozen target — head SHA or merge-base — and the counts that returned nothing
-to charge, named one by one.
+One document, ranked, findings first, each entry in the shape `CHARGES.md`
+prescribes. Close with the frozen target — head SHA or merge-base — and the
+counts that returned nothing to charge, named one by one.
 
 The trial is complete when all nine counts have returned and every surviving
-finding carries either an executable command or a quoted excerpt as its
-evidence. A finding whose evidence is a paraphrase is struck.
-
-Then stop. The ruling on what to do with the verdict belongs to whoever
-convened the court.
-
-## Red flags
-
-- a juror ranging across counts because it noticed something nearby;
-- a finding dropped because only one juror raised it;
-- a verdict entry whose evidence is a summary of the code rather than the code;
-- trusting a test the `proof` juror never ran without the change;
-- trying a pull request whose head moved during the trial;
-- inventing a charge so a count has something to return.
+finding carries an executable command or a quoted excerpt as its evidence. The
+ruling on what to do with the verdict belongs to whoever convened the court.

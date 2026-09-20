@@ -78,7 +78,8 @@ before convening the juror:
 | **Full** | Anything larger; any danger below; concurrency/shared state, external-input handling, hot path, or a diff the juror cannot hold in one reading | All nine counts in [`evaluate/SOLO.md`](../evaluate/SOLO.md) |
 
 One independent `Agent` call runs [`evaluate/SOLO.md`](../evaluate/SOLO.md)
-with the chosen counts on the pinned head. Give it the tier and the counts;
+with the chosen counts on the pinned head. Give it the counts in order and
+the proof depth below;
 the fixer never judges its own work. The juror returns `blocking`, `to fix`,
 `noted`, and which selected counts found nothing. A quick or standard proof
 runs the targeted tests and checks the claimed red state on the preceding

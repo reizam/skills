@@ -212,6 +212,9 @@ Duplication that is real beats duplication that is speculative: two blocks that
 merely rhyme are not a charge, and an extraction that would need a flag
 parameter to serve both callers is worse than the repetition.
 
+Rank `to fix` at the highest: this count judges quality, not defect, and a
+verdict that blocks on taste stops being read.
+
 On a spec: the charge is a design that describes building what the system
 already has.
 
@@ -240,6 +243,9 @@ behaviour" is.
 
 Style already enforced by a formatter or linter is not yours — the machine has
 it, and spending attention there costs the counts that need it.
+
+Rank `to fix` at the highest: this count judges quality, not defect, and a
+verdict that blocks on taste stops being read.
 
 On a spec: the charge is a design carrying moving parts that its own acceptance
 criteria never exercise.
