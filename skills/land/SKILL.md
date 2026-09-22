@@ -1,6 +1,6 @@
 ---
 name: land
-description: Use when a loop iteration must take every open pull request to merged — the PR's ledger read before anything else, red heads handed to a fixer, green heads judged once at a tier fixed on the first sweep, later rounds judging only the answers and the delta, a go that survives a merge of main, three rounds then Karl, every go enqueued in one batch.
+description: Use when a loop iteration must take every open pull request to merged — the PR's ledger read before anything else, every head's chain run concurrently by one Workflow, red heads handed to a fixer, green heads judged once at a tier fixed on the first sweep, later rounds judging only the answers and the delta, a go that survives a merge of main, three rounds then Karl, every go enqueued in one batch.
 ---
 
 # Land
@@ -12,6 +12,12 @@ The loop is done when `gh pr list --state open` returns only PRs that are
 Three actors, never the same one: the iteration steers and enqueues, a
 **fixer** subagent writes code on a branch, a **juror** subagent judges a
 head. The one who wrote the fix never decides it is good.
+
+The iteration itself runs no fixer and no juror. It classifies every head
+with cheap `gh` reads (§1), then hands the whole work-list to **one**
+`Workflow` call (§ Dispatch) that runs every head's chain — fix, or judge →
+answer → re-judge — concurrently, and returns one outcome per PR. Wall
+clock is the slowest single head, not the sum.
 
 The merge queue groups up to 5 PRs per build — the sweep hands it full
 groups, not a drip of singletons.
@@ -60,9 +66,13 @@ Route on the stamp first, the head second:
 - **fixing** less than 30 minutes old — another iteration owns it; skip.
 - **go on this head**, green — enqueue now (§3).
 - **go on an older head** — §3 *A go survives*.
-- **loud** — a check has no conclusion. Skip; the next sweep will see it.
-- **red** — a check failed, or the branch conflicts. §2.
-- **green**, no go — §3.
+- **loud** on a head with no verdict yet — a check has no conclusion. Skip;
+  the next sweep will see it. A head already in round 2 or 3 is judged on
+  its answers and its delta, which need no CI: it goes to Dispatch loud.
+- **red** — a check failed, or the branch conflicts. Triage (§2); what the
+  diff can reach goes to Dispatch as `state: "red"` with the failed step.
+- **green**, no go — fix the tier (§3); goes to Dispatch as `state: "green"`
+  with its round count and, from round 2, the previous verdict and answers.
 
 ## 2. Red: triage, then one fixer per head
 
@@ -72,10 +82,9 @@ in the shared preamble the diff cannot reach, a known flake filed as an issue
 — is rerun once the run has finished (`gh run rerun <id> --failed`), then
 skipped. Anything the diff can reach is a finding for a fixer.
 
-Stamp `land: fixing <sha>`, then dispatch one `Agent` per red head — several
-in parallel when several heads are red. Each fixer gets a worktree on the
-branch, the pinned head, the failed step's log, and the conflict if any. Its
-brief:
+A fixer gets a worktree on the branch, the pinned head, the failed step's
+log, and the conflict if any. It stamps `land: fixing <sha>` before touching
+a line. Its brief:
 
 - reproduce the failure locally before touching a line;
 - a behaviour fix is **red-proven** — the covering test seen failing on the
@@ -108,13 +117,14 @@ that would fit Standard fits Standard.
 
 ### Round 1
 
-One independent `Agent` per head, run as [`evaluate/SOLO.md`](../evaluate/SOLO.md)
-with the tier's counts on the pinned SHA — several jurors in parallel when
-several heads need them. It returns `blocking`, `to fix`, `noted`, and which
-counts found nothing. Stamp `land: verdict 1 <sha>` with the entries.
+One independent juror per head, run as [`evaluate/SOLO.md`](../evaluate/SOLO.md)
+with the tier's counts on the pinned SHA. It returns `blocking`, `to fix`,
+`noted`, and which counts found nothing, and stamps `land: verdict 1 <sha>`
+with the entries.
 
-No `blocking`, no `to fix` → **go**. Otherwise → §2 with the verdict as the
-fixer's brief; the fixer answers every entry or refutes it in writing.
+No `blocking`, no `to fix` → **go**. Otherwise the verdict is the fixer's
+brief, in the same chain: the fixer answers every entry or refutes it in
+writing, and round 2 follows on its push.
 
 ### Rounds 2 and 3 — the answers and the delta, nothing else
 
@@ -129,7 +139,10 @@ verdict's entries, each with the fixer's answer, and
 > the delta is out of scope, and the rest of the PR has been judged.
 
 Stamp `land: verdict <n> <sha>`. Every entry **closed** and no `blocking` on
-the delta → **go**. An **open** entry or a `blocking` → §2, one more time.
+the delta → **go**. An **open** entry or a `blocking` → the fixer again, one
+more time, in the same chain. CI is not waited for between rounds: a go
+enqueues only when the head is green, and a red on a go head is §2 like any
+other.
 
 Round 3 is the last. Its verdict still not go → stamp `land: with Karl <sha>`
 with the verdict, and put the PR to Karl in §4's batch. The loop stops
@@ -151,6 +164,28 @@ a flake: none of these reopen a verdict.
 
 A real commit listed → one more round (§ Rounds 2 and 3) on
 `git diff <go sha>..<head>` only, the previous verdict having no open entry.
+
+### Dispatch — one Workflow, every chain at once
+
+Read [`dispatch.js`](dispatch.js) beside this file and call `Workflow` with
+its contents as `script` and this `args`:
+
+```json
+{ "skill": "<absolute path of this SKILL.md>",
+  "solo": "<absolute path of evaluate/SOLO.md>",
+  "heads": [ { "number": 4004, "branch": "fix/…", "head": "<sha>", "tier": "Full",
+               "round": 1, "state": "green", "previousVerdict": "<entries + answers>" },
+             { "number": 4023, "branch": "…", "head": "<sha>", "tier": "Standard",
+               "round": 0, "state": "red", "failure": "<step + log excerpt>" } ] }
+```
+
+`round` is the number of `land: verdict` stamps the PR carries; a PR with
+three goes to Karl, never to Dispatch. The workflow runs in the background:
+wait for its task notification (a long `ScheduleWakeup` fallback, no
+polling), then act on its return — `go` → enqueue below, `with-karl` →
+§4, `fixed` → the next sweep re-reads the head. Every stamp is written by
+the fixer or juror inside the chain, so a chain that dies mid-way leaves
+the ledger true up to its last stamp.
 
 ### Enqueue every go PR in the same iteration
 
@@ -186,10 +221,14 @@ Nothing for Karl → nothing to ask.
   latest stamp;
 - a tier re-decided on a head that already carries `land: tier`;
 - a round-2 juror handed the counts instead of the entries and the delta;
+- a fixer or juror run as a lone `Agent` when other heads were waiting — one
+  Workflow carries the whole sweep;
+- a round-2 chain held for CI it does not need;
 - a fourth round;
 - a go reopened by a merge of `main`;
 - judging a head with a check still pending;
 - calling a red run machinery without naming the failed step;
 - the fixer and the juror in the same subagent;
 - a withheld path enqueued because CI is green and the verdict is clean;
+- a go enqueued on a head that is not green;
 - a sweep that enqueues one PR when five were go.
