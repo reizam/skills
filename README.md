@@ -14,13 +14,16 @@ One copy on disk, three agents reading it. `git pull` updates all of them.
 | Skill | What it does |
 |---|---|
 | [`/aim`](skills/aim) | Turns a loose intention into a brief an autonomous run can be trusted with — a terminal state that is a command, a verification loop, a journal, and all three stopping conditions. Refuses the work that does not belong in a loop. |
+| [`/animate`](skills/animate) | Makes a short demo video that reads as credible rather than as AI slop — every figure computed from the repository, every interface reproduced from its real design tokens, verified on a contact sheet before it renders. |
 | [`/brainstorm`](skills/brainstorm) | Runs superpowers' design dialogue to its written spec, then tries that spec with `/evaluate` before a line of code exists. |
 | [`/evaluate`](skills/evaluate) | Tries a pull request, a branch or a spec before you trust it. Nine jurors, one count each, instructed in parallel and sealed from one another; returns one ranked verdict and writes nothing. |
 | [`/pair`](skills/pair) | Pairs live with the developer at the keyboard — codes the recommendation first, hands it over with what to observe, commits each retained step, and runs the toolchain and `/evaluate` once on their go. |
 | [`/land`](skills/land) | Lands every open pull request, one per loop iteration: a red head goes to a fixer subagent, a green head to one solo juror (`/evaluate`'s `SOLO.md`), a go is merged, and a dangerous change — migration, permissions, billing, CI, public contract — is put to you as merge, hold or close. Run as `/loop /land`. |
 | [`/innovate`](skills/innovate) | Takes a half-formed idea, opens three genuinely distinct directions, weighs each honestly, and rules on the one that ships — ending on a single decision. |
 
-`/brainstorm` requires `superpowers:brainstorming`; everything else stands alone.
+`/brainstorm` requires `superpowers:brainstorming`, and `/animate` requires the
+HyperFrames CLI plus its `hyperframes` and `faceless-explainer` skills
+(`npx hyperframes skills`). Everything else stands alone.
 
 ## Naming
 
