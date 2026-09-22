@@ -50,10 +50,10 @@ that did not exist, and its ten-character prefix survived the glance.
 ## 1. Sweep
 
 ```bash
-gh pr list --state open --json number,isDraft,headRefName,title,mergeable --jq '.[] | select(.isDraft|not)'
+gh pr list --state open --limit 100 --json number,isDraft,headRefName,title,mergeable
 ```
 
-Skip drafts and PRs titled `test(...): red repro`. For each remaining PR pin
+Drafts are swept like any other PR — the worker sessions open everything as a draft; a draft go is marked `gh pr ready <N>` just before its enqueue. Skip only PRs titled `test(...): red repro`. For each remaining PR pin
 the head SHA, read the latest stamp, then the state:
 
 ```bash
@@ -164,7 +164,7 @@ A `land: go` stamp stands on a **newer** head when every commit since the
 go SHA is a merge commit or an empty commit:
 
 ```bash
-git log --no-merges --format='%h %s' <go sha>..<head>
+git log --first-parent --no-merges --format='%h %s' <go sha>..<head>
 ```
 
 Nothing listed, or only commits whose `git show --stat --format= <h>` prints
@@ -210,15 +210,26 @@ at a time while fixers and jurors run beside it:
 
    > 🚀 **Nouvelle feature qui arrive** — <what a person can now do, one sentence, in their words>
    > <where to find it: the screen and the gesture, one line>
-   > <the video>
+   > 🎥 <URL of the `land: demo` comment>
 
-   The sentence names the benefit, never the mechanism. It goes through the
-   Slack **connector** of the session — search the tools for `slack` and use
-   the one that posts to a channel. The video rides as a file when that tool
-   takes one; otherwise the announcement carries the URL of the `land: demo`
-   comment, where GitHub already plays it. No Slack tool in the session is
-   one line in the report; the stamp stands. `#standards-repository` is the
-   curator's channel, which would read an announcement as a request.
+   The sentence names the benefit, never the mechanism. The announcement **is**
+   the video: one message, the file playing inline in the channel, the text as
+   its comment. Slack plays mp4, so convert the webm first:
+
+   ```bash
+   ffmpeg -loglevel error -y -i video.webm -c:v libx264 -pix_fmt yuv420p \
+     -movflags +faststart -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" demo-<N>.mp4
+   ```
+
+   Then the Slack **connector**'s two-step upload: `slack_get_file_upload_url`
+   (filename `demo-<N>.mp4`, `content_length` = the mp4's exact byte count),
+   `curl -X POST -H "Content-Type: video/mp4" --data-binary @demo-<N>.mp4 "$URL"`
+   with the URL held in a shell variable, then `slack_complete_file_upload`
+   with `channel_id` = `#standards-logs` (`slack_search_channels` finds its
+   ID), no `thread_ts`, and the announcement as `initial_comment`. No Slack
+   tool in the session is one line in the report; the stamp stands.
+   `#standards-repository` is the curator's channel, which would read an
+   announcement as a request.
 
 A stack that stays down ends the demos of the sweep: every batched head
 returns `demo-skipped — stack`, enqueues nothing, and two sweeps in a row
