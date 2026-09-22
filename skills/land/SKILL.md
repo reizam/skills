@@ -174,12 +174,14 @@ its contents as `script` and this `args`:
 { "skill": "<absolute path of this SKILL.md>",
   "solo": "<absolute path of evaluate/SOLO.md>",
   "heads": [ { "number": 4004, "branch": "fix/…", "head": "<sha>", "tier": "Full",
-               "round": 1, "state": "green", "previousVerdict": "<entries + answers>" },
+               "round": 1, "state": "green", "judged": "<sha the last verdict judged>",
+               "previousVerdict": "<entries + answers>" },
              { "number": 4023, "branch": "…", "head": "<sha>", "tier": "Standard",
                "round": 0, "state": "red", "failure": "<step + log excerpt>" } ] }
 ```
 
-`round` is the number of `land: verdict` stamps the PR carries; a PR with
+`round` is the number of `land: verdict` stamps the PR carries, and
+`judged` the SHA the last one judged — the round-2 delta starts there; a PR with
 three goes to Karl, never to Dispatch. The workflow runs in the background:
 wait for its task notification (a long `ScheduleWakeup` fallback, no
 polling), then act on its return — `go` → enqueue below, `with-karl` →

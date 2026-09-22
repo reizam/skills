@@ -14,6 +14,7 @@ export const meta = {
 //   solo:  '<absolute path of evaluate/SOLO.md>',
 //   heads: [{ number, branch, head, tier, round, state: 'red' | 'green',
 //             failure?: '<failed step + log excerpt, or the conflict>',
+//             judged?: '<SHA the last verdict judged>',
 //             previousVerdict?: '<entries of the last verdict, with the fixer's answers>' }],
 // }
 // `round` is the number of `land: verdict` stamps the PR already carries.
@@ -71,7 +72,7 @@ const results = await pipeline(args.heads, async (pr) => {
 
   let round = pr.round + 1
   let head = pr.head
-  let verdict = await juror({ ...pr, head }, round, pr.head)
+  let verdict = await juror({ ...pr, head }, round, pr.judged || pr.head)
   while (!verdict.go && round < 3) {
     const push = await fixer({ ...pr, head }, verdict.verdict, 'Answer')
     const judged = head
