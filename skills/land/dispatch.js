@@ -13,7 +13,6 @@ export const meta = {
 // args = {
 //   skill: '<absolute path of land/SKILL.md>',
 //   solo:  '<absolute path of evaluate/SOLO.md>',
-//   slack: '<absolute path of verifying-changes/SLACK.md>',
 //   stack: '<absolute path of the demo worktree, .worktrees/land-demo>',
 //   heads: [{ number, branch, head, tier, round, screen: boolean,
 //             state: 'red' | 'green' | 'demo',
@@ -93,7 +92,7 @@ Return go=true only when ${first ? 'there is no `blocking` and no `to fix`' : 'e
 function demonstrator(batch, n) {
   const list = batch.map((pr) => `- #${pr.number} \`${pr.branch}\` head \`${pr.head}\``).join('\n')
   return agent(
-    `You are the demonstrator of batch ${n} of this land sweep. Read § 3 "Demo" of ${args.skill} and obey it, then ${args.slack} for the announcement upload.
+    `You are the demonstrator of batch ${n} of this land sweep. Read § 3 "Demo" of ${args.skill} and obey it.
 
 The batch:
 ${list}
@@ -106,7 +105,7 @@ In order:
 3. For each head, before reading its diff: the gesture from \`gh pr view <N>\` (title, body, the issue it closes) — route, steps, end state a person can check. A model-backed surface (chat, architect, anything that calls a model) is \`skipped-model\` without a try: the stack's gateway key is a placeholder.
 4. One spec per head at apps/sandbox/web/e2e/qa/<N>.spec.ts asserting the end state, human pace; run them together from apps/sandbox/web: \`SANDBOX_INSTANCE=<slot> SANDBOX_WEB_PORT=<port> pnpm exec playwright test --config playwright.qa.config.ts qa/ --workers=${BATCH}\`. Unique data names per spec (suffix \`land<N>\`), never delete another spec's data.
 5. A failing gesture is replayed alone: a second throwaway branch \`land-demo/${n}-<N>\` = origin/main + that head only, same rebuild, that spec only. Fails again → \`fail\`. Passes alone → \`interaction\`; return the pair it collided with in the note when you can name it.
-6. Stamps, video attached (\`gh pr comment <N> --attach <video.webm>\`): \`land: demo <head>\` for a pass (the gesture in three lines), \`land: demo failed <head>\` for a fail (the spec in a fenced block, expected against observed), \`land: demo skipped — needs a model\` / \`— stack: <what>\`. Each pass is then announced on Slack as § 3 Demo point 5 says; missing SLACK_BOT_TOKEN or SLACK_QA_CHANNEL_ID is noted in the note, not an error.
+6. Stamps, video attached (\`gh pr comment <N> --attach <video.webm>\`): \`land: demo <head>\` for a pass (the gesture in three lines), \`land: demo failed <head>\` for a fail (the spec in a fenced block, expected against observed), \`land: demo skipped — needs a model\` / \`— stack: <what>\`. Each pass is then announced in #standards-logs through the session's Slack connector, as § 3 Demo point 5 says; no Slack tool in the session is noted in the note, not an error.
 7. \`git worktree\` stays; delete the throwaway branches, keep the stack up for the next batch.
 
 Return one result per head of the batch.`,

@@ -206,10 +206,19 @@ at a time while fixers and jurors run beside it:
    same run. Passes alone → an interaction inside the batch: both heads
    stay out of the queue, `with Karl`, the pair named.
 5. A gesture that passes → `land: demo <sha>` with the video (`gh pr comment
-   --attach`), and the announcement — « Nouvelle feature qui arrive », one
-   sentence a user would say, where to find it, the PR, the video — posted
-   to `#standards-logs` through `SLACK.md`. Missing Slack secrets are one
-   line in the report; the stamp stands.
+   --attach`), then the **announcement** in `#standards-logs`:
+
+   > 🚀 **Nouvelle feature qui arrive** — <what a person can now do, one sentence, in their words>
+   > <where to find it: the screen and the gesture, one line>
+   > <the video>
+
+   The sentence names the benefit, never the mechanism. It goes through the
+   Slack **connector** of the session — search the tools for `slack` and use
+   the one that posts to a channel. The video rides as a file when that tool
+   takes one; otherwise the announcement carries the URL of the `land: demo`
+   comment, where GitHub already plays it. No Slack tool in the session is
+   one line in the report; the stamp stands. `#standards-repository` is the
+   curator's channel, which would read an announcement as a request.
 
 A stack that stays down ends the demos of the sweep: every batched head
 returns `demo-skipped — stack`, enqueues nothing, and two sweeps in a row
@@ -224,7 +233,6 @@ its contents as `script` and this `args`:
 ```json
 { "skill": "<absolute path of this SKILL.md>",
   "solo": "<absolute path of evaluate/SOLO.md>",
-  "slack": "<absolute path of verifying-changes/SLACK.md>",
   "stack": "<absolute path of the demo worktree, .worktrees/land-demo>",
   "heads": [ { "number": 4004, "branch": "fix/…", "head": "<sha>", "tier": "Full",
                "round": 1, "state": "green", "screen": true,
