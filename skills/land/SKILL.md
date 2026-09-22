@@ -13,11 +13,11 @@ Three actors, never the same one: the iteration steers and enqueues, a
 **fixer** subagent writes code on a branch, a **juror** subagent judges a
 head. The one who wrote the fix never decides it is good.
 
-The iteration itself runs no fixer and no juror. It classifies every head
-with cheap `gh` reads (§1), then hands the whole work-list to **one**
-`Workflow` call (§ Dispatch) that runs every head's chain — fix, or judge →
-answer → re-judge — concurrently, and returns one outcome per PR. Wall
-clock is the slowest single head, not the sum.
+The iteration classifies every head with cheap `gh` reads (§1) and hands
+the whole work-list to **one** `Workflow` call (§ Dispatch), where every
+head's chain — fix, or judge → answer → re-judge — runs concurrently and
+returns one outcome per PR. Fixers and jurors live inside that workflow;
+wall clock is the slowest head, not the sum.
 
 The merge queue groups up to 5 PRs per build — the sweep hands it full
 groups, not a drip of singletons.
@@ -25,22 +25,22 @@ groups, not a drip of singletons.
 ## The ledger
 
 Every decision this loop takes is a comment on the PR whose first line is a
-**stamp**. The stamps are the loop's only memory; a sweep reads them before
-it reads anything else, and a judgement that is not stamped did not happen.
+**stamp**. The stamps are the loop's whole memory: a sweep reads them first,
+and a judgement exists once it is stamped.
 
 | Stamp | Meaning |
 |---|---|
-| `land: tier <Sight\|Standard\|Full> <sha>` | Tier fixed on the diff of the first sweep. Never re-decided. |
+| `land: tier <Sight\|Standard\|Full> <sha>` | Tier fixed on the diff of the first sweep, kept through every round. |
 | `land: verdict <n> <sha>` | Round `n` verdict on that head, entries listed below the stamp. |
 | `land: fixing <sha>` | A fixer owns the branch; another iteration skips it for 30 minutes. |
 | `land: go <sha>` | Judged clean on that head. Enqueue as soon as green. |
 | `land: go <sha> — withheld: <risk>` | Clean, but the merge is Karl's. |
-| `land: queued <sha>` | Enqueued. Never re-read. |
+| `land: queued <sha>` | Enqueued. Final. |
 | `land: held — <risk>` | Karl's ruling. Skipped until the head changes or Karl speaks. |
 | `land: with Karl <sha>` | Three rounds spent. Karl merges, holds or closes. |
 
-Before quoting a SHA, `git cat-file -e <sha>` — a fixer once reported one
-that did not exist, and a ten-character prefix survived the glance.
+`git cat-file -e <sha>` before quoting one — a fixer once reported a SHA
+that did not exist, and its ten-character prefix survived the glance.
 
 ## 1. Sweep
 
@@ -66,9 +66,9 @@ Route on the stamp first, the head second:
 - **fixing** less than 30 minutes old — another iteration owns it; skip.
 - **go on this head**, green — enqueue now (§3).
 - **go on an older head** — §3 *A go survives*.
-- **loud** on a head with no verdict yet — a check has no conclusion. Skip;
-  the next sweep will see it. A head already in round 2 or 3 is judged on
-  its answers and its delta, which need no CI: it goes to Dispatch loud.
+- **loud** — a check has no conclusion. A head with no verdict yet waits
+  for the next sweep. A head in round 2 or 3 goes to Dispatch loud: its
+  answers and its delta are judged without CI.
 - **red** — a check failed, or the branch conflicts. Triage (§2); what the
   diff can reach goes to Dispatch as `state: "red"` with the failed step.
 - **green**, no go — fix the tier (§3); goes to Dispatch as `state: "green"`
@@ -94,17 +94,18 @@ a line. Its brief:
   before pushing;
 - push, and return the new head SHA and one line per change.
 
-Widening an assertion, skipping a test, or a `--no-verify` push is not a
-fix; a fixer that returns one gets the branch back with the finding
-restated. The push moves the head — the next sweep re-reads it from §1.
+A fix keeps every assertion and every test as strict as it found them and
+pushes through the hooks; a fixer that widened, skipped or `--no-verify`d
+gets the branch back with the finding restated. The push moves the head —
+the next sweep re-reads it from §1.
 
 ## 3. Green: judge once, then batch-enqueue
 
 ### Tier — fixed on the first sweep
 
 No `land: tier` stamp yet: read `gh pr view <N> --json additions,deletions,files`,
-pick one tier, stamp it. Every later round runs at that tier; the tests a
-fixer adds to answer a verdict never promote a PR.
+pick one tier, stamp it. The PR keeps that tier through every round, whatever
+tests the fixers add.
 
 | Tier | Bound | Round 1 |
 |---|---|---|
@@ -140,13 +141,13 @@ verdict's entries, each with the fixer's answer, and
 
 Stamp `land: verdict <n> <sha>`. Every entry **closed** and no `blocking` on
 the delta → **go**. An **open** entry or a `blocking` → the fixer again, one
-more time, in the same chain. CI is not waited for between rounds: a go
-enqueues only when the head is green, and a red on a go head is §2 like any
-other.
+more time, in the same chain. Rounds follow each other without waiting for
+CI; a go enqueues once the head is green, and a red on a go head is §2 like
+any other.
 
-Round 3 is the last. Its verdict still not go → stamp `land: with Karl <sha>`
-with the verdict, and put the PR to Karl in §4's batch. The loop stops
-touching it.
+Round 3 is the last. Its verdict still short of go → stamp `land: with Karl
+<sha>` with the verdict and put the PR to Karl in §4's batch; it leaves the
+loop until Karl speaks.
 
 ### A go survives
 
@@ -158,9 +159,9 @@ git log --no-merges --format='%h %s' <go sha>..<head>
 ```
 
 Nothing listed, or only commits whose `git show --stat --format= <h>` prints
-nothing → re-stamp `land: go <head>` and enqueue when green. A merge of
-`main`, a conflict resolved in a merge commit, a fresh head pushed to dodge
-a flake: none of these reopen a verdict.
+nothing → re-stamp `land: go <head>` and enqueue when green. The verdict
+stands through a merge of `main`, a conflict resolved in a merge commit, and
+a fresh head pushed to dodge a flake.
 
 A real commit listed → one more round (§ Rounds 2 and 3) on
 `git diff <go sha>..<head>` only, the previous verdict having no open entry.
@@ -195,17 +196,17 @@ the ledger true up to its last stamp.
 gh pr merge <N> --auto
 ```
 
-Never pass a strategy — the merge queue sets it. Stamp `land: queued <sha>`.
-A withheld-path go (§4) is stamped `land: go <sha> — withheld: <risk>` and
-waits for Karl instead.
+The merge queue sets the strategy, so the command takes none. Stamp
+`land: queued <sha>`. A withheld-path go (§4) is stamped `land: go <sha> —
+withheld: <risk>` and waits for Karl instead.
 
 ## 4. Karl: one batched message, not one per PR
 
 Withheld paths are listed in `.agents/skills/approving-pull-requests/SKILL.md`
 § Withheld paths (migrations, permissions/visibility/identity, billing,
 `.github/**`, CLI and HTTP contracts, narrowed public schemas, a PR with no
-issue). A go PR on those paths, and a PR stamped `with Karl`, does not
-enqueue.
+issue). A go PR on those paths, and a PR stamped `with Karl`, waits for
+Karl.
 
 Once per iteration, put **all** such PRs to Karl in a single message — one
 line each: number, title, head, verdict summary, the specific risk or the
@@ -215,22 +216,17 @@ open entry (name it, never just the path) — each with three choices:
 2. **Hold** — stamp `land: held — <risk>`.
 3. **Close** — `gh pr close <N> --comment "<why>"`.
 
-Nothing for Karl → nothing to ask.
+Nothing for Karl → the iteration ends without a message.
 
 ## Red flags
 
 - a judgement without its stamp, or a sweep that judged before reading the
   latest stamp;
-- a tier re-decided on a head that already carries `land: tier`;
+- a tier re-decided, a fourth round, a verdict reopened by a merge of `main`;
 - a round-2 juror handed the counts instead of the entries and the delta;
-- a fixer or juror run as a lone `Agent` when other heads were waiting — one
-  Workflow carries the whole sweep;
-- a round-2 chain held for CI it does not need;
-- a fourth round;
-- a go reopened by a merge of `main`;
-- judging a head with a check still pending;
-- calling a red run machinery without naming the failed step;
-- the fixer and the juror in the same subagent;
-- a withheld path enqueued because CI is green and the verdict is clean;
-- a go enqueued on a head that is not green;
-- a sweep that enqueues one PR when five were go.
+- a fixer or juror run as a lone `Agent` while other heads waited;
+- a round-1 head judged with a check still pending;
+- machinery called without the failed step named;
+- the fixer and the juror in one subagent;
+- a withheld path or a loud head enqueued;
+- one PR enqueued when five were go.
