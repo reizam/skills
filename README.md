@@ -19,6 +19,7 @@ One copy on disk, three agents reading it. `git pull` updates all of them.
 | [`/evaluate`](skills/evaluate) | Tries a pull request, a branch or a spec before you trust it. Nine jurors, one count each, instructed in parallel and sealed from one another; returns one ranked verdict and writes nothing. |
 | [`/pair`](skills/pair) | Pairs live with the developer at the keyboard — codes the recommendation first, hands it over with what to observe, commits each retained step, and runs the toolchain and `/evaluate` once on their go. |
 | [`/land`](skills/land) | Lands every open pull request, one per loop iteration: a red head goes to a fixer subagent, a green head to one solo juror (`/evaluate`'s `SOLO.md`), a go is merged, and a dangerous change — migration, permissions, billing, CI, public contract — is put to you as merge, hold or close. Run as `/loop /land`. |
+| [`/prune`](skills/prune) | Finds the tests whose time, flakiness or upkeep outweighs what they alone catch, and cuts them — each promise probed by breaking the source, a lone witness folded into a surviving test first, every deletion written down as a trade. Scouts a suite, or cuts one candidate. |
 | [`/innovate`](skills/innovate) | Takes a half-formed idea, opens three genuinely distinct directions, weighs each honestly, and rules on the one that ships — ending on a single decision. |
 
 `/brainstorm` requires `superpowers:brainstorming`, and `/animate` requires the
