@@ -1,6 +1,6 @@
 ---
 name: prune
-description: Use when a test suite costs more than it protects — to scout the tests whose time, flakiness or upkeep outweighs what they alone catch, or to cut one such candidate, folding its lone assertion into a surviving test first.
+description: Use when a test suite costs more than it protects — to scout the tests whose time, flakiness or upkeep outweighs what they alone catch, to audit every test of a suite for what it witnesses, or to cut one such candidate, folding its lone assertion into a surviving test first.
 ---
 
 # Prune
@@ -16,15 +16,19 @@ assertion moves into a cheaper surviving test before the candidate goes. That
 move is the **fold**, and it is as much the output of this skill as the
 deletion.
 
-## Two branches
+## Three branches
 
 - **Scouting** — find candidates, measure them, and file or report the best
   few. Follow [`SCOUT.md`](SCOUT.md).
+- **Auditing** — give every test of a suite a verdict, and report the whole
+  map: what each test witnesses, what is wasted, what nothing witnesses.
+  Follow [`AUDIT.md`](AUDIT.md).
 - **Cutting** — take one candidate (an issue, a name, a file) to a merged-ready
   change: probe, fold, delete, measure, ledger. Follow [`CUT.md`](CUT.md).
 
-A run that was handed a candidate cuts. A run that was handed a suite scouts.
-Both use the vocabulary below.
+A run that was handed a candidate cuts. A run that was handed a suite scouts,
+and audits when it was asked about every test. All three use the vocabulary
+below.
 
 ## Vocabulary
 
@@ -50,9 +54,16 @@ they caught; reduced by red sets, none.
 - Leave **arid** code alone — logging, metrics, buffer sizes, cache capacities,
   messages. A promise that only an arid break reveals is a change-detector, and
   the test pinning it is a mirror.
+- Confirm every break **applied**: the diff shows it, and the run executed the
+  edited build. A break lost to a cached build, a wrong file or a compile error
+  is **invalid** and is re-applied — an invalid break reads exactly like an
+  empty red set.
 - A break nobody catches may be **equivalent** — code that still behaves the
   same. Show the behaviour actually changed (a call's output, a returned value)
-  before reading the empty red set.
+  before reading the empty red set. When a model judges equivalence, seed it
+  first with one break known to change behaviour and one known not to; a judge
+  that misrules either is replaced by the demonstration.
+- A break no test even executes is **uncovered** — no test reaches that code.
 - A **timeout** is its own outcome, recorded as one — never as a red.
 - Probe only from a green baseline: run the neighbourhood once untouched first.
 
@@ -106,6 +117,12 @@ Each shape is a place to look, never a verdict: the probe decides.
   the arguments it was configured to receive, a snapshot of whatever the code
   produced, a constant equal to its own definition. Its probe red set is often
   empty.
+- **Echo** — the expected value comes from the code under test: computed by
+  the same function or helper, or pasted from a run of it. A break moves the
+  expected and the observed together, and the test stays green. Common where
+  one agent wrote both the code and the test. When its promise is worth
+  keeping, the fold writes the expected value as a literal worked out from the
+  specification.
 - **Borrowed promise** — pins the framework, the library or the type checker:
   that a component renders its prop, that a schema library rejects a wrong
   type, a type-level fact the compiler already enforces.
