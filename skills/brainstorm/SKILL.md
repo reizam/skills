@@ -10,7 +10,7 @@ dialogue and this skill does not restate it: invoke it and follow its checklist
 **verbatim**, every item, in order, however simple the work looks. "Too simple
 to need a design" is that skill's own named anti-pattern.
 
-What this adds is two rules while it runs, and one gate when it ends.
+What this adds is three rules while it runs, and one gate when it ends.
 
 **Prerequisite** — `superpowers:brainstorming` must be installed. Without it,
 say so and stop rather than improvising a design dialogue; the point of the
@@ -28,6 +28,12 @@ produce different code.
 exists beats the clever new abstraction. When two approaches ship the same
 outcome, recommend the one that adds less surface. This bias belongs in the
 recommendation you present, stated out loud, so it can be argued with.
+
+**Test plan by red.** The spec's testing section lists each new case by the bug
+it goes **red** on — a regression, a change to stable public behaviour, or a
+high-risk path — and the existing file it lands in. A case with no plausible
+bug to catch leaves the plan; typecheck, lint and the existing suite cover the
+rest. The project's agent instructions own the full test policy.
 
 ## When it ends: try the spec
 
@@ -59,6 +65,7 @@ charge — the spec's clean bill is part of its record.
 - reaching for a design dialogue of your own instead of superpowers';
 - asking the person a question the repository answers;
 - asking a question whose answers produce the same code;
+- a test plan sized by coverage instead of by the bugs it goes red on;
 - letting the spec reach planning with a blocking finding open;
 - skipping `/evaluate` because the spec was written carefully;
 - treating a `noted` finding as handled by having read it.
