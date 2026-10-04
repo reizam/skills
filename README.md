@@ -20,6 +20,7 @@ One copy on disk, three agents reading it. `git pull` updates all of them.
 | [`/pair`](skills/pair) | Pairs live with the developer at the keyboard — codes the recommendation first, hands it over with what to observe, commits each retained step, and runs the toolchain and `/evaluate` once on their go. |
 | [`/land`](skills/land) | Lands every open pull request, one per loop iteration: a red head goes to a fixer subagent, a green head to one solo juror (`/evaluate`'s `SOLO.md`), a go is merged, and a dangerous change — migration, permissions, billing, CI, public contract — is put to you as merge, hold or close. Run as `/loop /land`. |
 | [`/prune`](skills/prune) | Finds the tests whose time, flakiness or upkeep outweighs what they alone catch, and cuts them — each promise probed by breaking the source, a lone witness folded into a surviving test first, every deletion written down as a trade. Scouts a suite, audits every test in it, or cuts one candidate. |
+| [`/harden`](skills/harden) | Gives a witness to code no test goes red on — the gaps a `/prune` audit names, a surviving mutant, an escaped defect's path. Each promise stated from the spec, each new assertion proved red on the break and green on the restored source; a red on intact code is reported as a defect, never encoded. |
 | [`/innovate`](skills/innovate) | Takes a half-formed idea, opens three genuinely distinct directions, weighs each honestly, and rules on the one that ships — ending on a single decision. |
 
 `/brainstorm` requires `superpowers:brainstorming`, and `/animate` requires the

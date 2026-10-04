@@ -70,8 +70,8 @@ Write the report as a file in the repository's working tree:
    each one alone holds.
 4. **Unwitnessed code** — functions whose break turned no test red, or that no
    test executes, weighted by the promise they carry. Permissions, isolation,
-   money and data loss come first. This is the suite's other weakness, and
-   the audit only names it.
+   money and data loss come first. This is the suite's other weakness: the
+   audit names it, and `harden` gives it witnesses.
 5. **Coverage note** — what the matrix covered, out of what, and what was left
    unprobed and why.
 
