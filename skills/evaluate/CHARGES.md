@@ -89,9 +89,32 @@ newly broken behaviour is the highest-rank finding this count can return.
 A guard needs both cases — one test that it refuses, one that it still allows.
 Without the second, an over-broad guard passes everything.
 
+A behaviour change on a high-risk path — permissions, tenant isolation, money,
+data loss — with no test going red when it is reverted is `blocking`.
+
+Then weigh every test the change adds or deletes. A test earns its place by
+going **red** on a bug a user would hit: the regression the change fixes, a
+change to stable public behaviour, a high-risk path. Name that bug for each
+added test; a test with no bug to name is a `to fix` — delete it.
+
+- **Search first.** An existing case that already goes red on the same bug
+  makes the new one a twin: `to fix`, delete it.
+- **Regression in place.** A regression is one case in the file that already
+  covers the behaviour, named for the behaviour it pins.
+- **Public seam, exact values.** The test drives the public seam and asserts
+  the exact value, faking only the edges the project does not own (network,
+  clock, third-party SDKs). A double of the project's own code, an assertion
+  that checks only presence or type, and an **echo** — an expected value
+  computed by the code under test or pasted from a run of it — each let the
+  bug through: `to fix`.
+- **Pruning is progress.** A deleted test that could not go red on any
+  plausible bug is a gain. Challenge a deletion only when its bug is left with
+  no other test going red on it.
+
 On a spec: try each acceptance criterion for falsifiability. A criterion that
 today's code already satisfies asserts nothing; a criterion no command can
-settle cannot be proven at all.
+settle cannot be proven at all. Each planned test case names the bug it goes
+red on; a case that names none is struck from the plan.
 
 Refutation to attempt: the test does fail without the change, on a path you had
 not run.
