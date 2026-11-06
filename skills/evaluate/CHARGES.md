@@ -119,29 +119,134 @@ red on; a case that names none is struck from the plan.
 Refutation to attempt: the test does fail without the change, on a path you had
 not run.
 
+## experience
+
+Prosecute what a person meets on the screen the change touches. Walk it the way
+they would — arrive, wait, act, fail, come back — and read the code for each
+moment. Read the project's UI rules first: its agent instructions and the
+design-system guide they point at are the standard, and a finding cites the
+rule it breaks.
+
+- **States** — each surface the change renders has its loading, empty, error
+  and partial states, each shaped like its neighbours' (the skeleton where they
+  show one, the project's empty-state pattern where they use one). A write
+  shows its result at once and, when the server refuses, rolls back with a
+  message the person can act on.
+- **Keyboard** — every action reachable without a mouse; Enter, Escape, Tab
+  and the arrow keys do what the neighbouring surfaces make them do; a
+  shortcut the change adds collides with none already bound.
+- **Focus** — after open, close, submit, delete and undo, focus lands where the
+  person's next gesture is; a dialog traps it and gives it back.
+- **Names** — every control carries an accessible name; an icon-only button
+  carries a label and a tooltip where its neighbours carry one.
+- **Copy** — every string goes through the project's translations, present in
+  every locale it ships, worded like its neighbours and by the project's copy
+  rules.
+- **Theme** — colours, spacing and type come from the design tokens; the
+  surface holds in dark mode and at the narrowest width the project supports.
+- **Shape** — the pattern the project prefers where it has one: inline before
+  modal, the existing primitive before a new one, the neighbour's layout
+  before a new arrangement.
+
+Evidence is the line that renders the moment, beside the neighbour or the rule
+that sets the standard. A screenshot or a run in the browser is welcome when
+the stack serves one; the code excerpt is still owed.
+
+Rank by the person's loss: an action they cannot complete or a write they lose
+is `blocking`; a state that misleads, a dead key or a missing translation is
+`to fix`; a spacing or wording drift is `noted`.
+
+On a spec: the charge is a screen the document describes without its states,
+its keyboard path, or the copy it shows.
+
+Refutation to attempt: the state cannot occur on this path, the neighbour sets
+the same behaviour, or the rule does not cover this surface.
+
+## concurrency
+
+Prosecute what breaks when two things happen at once. For each trigger the
+target trips, name the two actors — two tabs, two users, a person and a job, a
+stream and an edit, a retry and its original — and play their interleavings
+against the code until one corrupts, loses or duplicates something.
+
+- **Order** — a response that lands after a newer one and overwrites it; a
+  stream event applied over an optimistic edit the person just made; a list
+  refetched mid-mutation that brings back what was just removed.
+- **Stale reads** — a value read, then written back after someone else changed
+  it, with no version, condition or lock between; a cache entry kept past the
+  write that invalidates it; a closure holding state from an earlier render.
+- **Double effects** — a submit fired twice, a job delivered twice, a retry
+  after a timeout that had in fact succeeded: each must land once, through an
+  idempotency key, a unique constraint or a guard.
+- **Rollback** — an optimistic update whose undo restores the state from
+  before a second, unrelated update and erases it.
+- **Leases and locks** — a lock taken and never released on the error path; a
+  lease that expires mid-work while the holder keeps writing; a fencing token
+  that the write never checks.
+- **Lifecycle** — a request still in flight when its screen unmounts or its
+  session ends, writing into state nobody owns.
+
+Evidence is the interleaving written out step by step, each step quoting the
+line it runs, ending on the state it leaves. A test that forces the order is
+the strongest evidence; the interleaving with line excerpts is the minimum.
+
+On a spec: the charge is a shared value the design writes from two places
+without saying which wins.
+
+Refutation to attempt: a constraint, version or lock already serialises the
+two actors, the path runs on a single actor by construction, or the second
+write is identical to the first.
+
 ## performance
 
 Prosecute the cost the change adds, on the path it actually runs on. Establish
-that path first — per request, per record, per render, per boot — because a
-cost paid once at boot is not a charge.
+that path first — per request, per record, per render, per keystroke, per
+streamed chunk, per boot — because a cost paid once at boot is not a charge.
+Try the server and the screen alike: a change that touches a component is
+judged on what it makes the browser do, not only on what it asks the API.
 
-Look for: a query inside a loop; a query with no bound and no page; a filter
-applied in application code over rows the database could have excluded; a
-column filtered or joined with no index; a cache read that was removed or whose
-key now varies per call; a synchronous call added to a request path; in React,
-a value rebuilt every render that feeds a memo, a context whose value identity
-changes on every parent render, an effect that synchronises what derived state
-would have given free.
+On the server, look for: a query inside a loop; a query with no bound and no
+page; a filter applied in application code over rows the database could have
+excluded; a column filtered or joined with no index; a cursor or offset that
+rescans what it already read; a cache read that was removed or whose key now
+varies per call; a synchronous call added to a request path; a job that wakes
+for nothing.
+
+On the screen, look for:
+
+- **re-renders** — a component subscribed to a whole store or query when it
+  reads one field; a context whose value identity changes on every parent
+  render; an object, array or callback rebuilt every render that feeds a memo,
+  a dependency array or a memoised child; a parent state that re-renders a
+  long list on each keystroke or each streamed chunk; a `key` that changes and
+  remounts a subtree;
+- **effects** — an effect that synchronises what derived state would have
+  given free, or that sets state and renders twice;
+- **lists** — a long list rendered whole where its neighbours virtualise;
+- **network** — a request waterfall a single call or a parallel fetch would
+  have avoided; a query key that varies per render and refetches; a poll that
+  outlives its screen or ignores the project's polling helper; a refetch storm
+  on focus or reconnect;
+- **main thread** — heavy work in render (sorting, parsing, diffing a large
+  set) that belongs in a memo, a worker or the server; a layout read inside a
+  write loop;
+- **weight** — a heavy dependency or a whole library imported on the first
+  route where a lazy import or a smaller module would do;
+- **leaks** — a listener, timer, subscription or observer never released; a
+  cache or map that only grows.
 
 Prefer deletion to addition: the strongest finding this count returns is work
-that should not happen at all.
+that should not happen at all. Quote the path's frequency with the finding —
+"once per streamed chunk, about 30 times a second" — since the rank follows it.
 
 On a spec: the charge is a design whose cost grows with something unbounded —
 per-record fan-out, a full scan hidden behind a convenient API, a write
-amplified across every tenant.
+amplified across every tenant, a screen that re-renders with every event of a
+stream.
 
-Refutation to attempt: the path is cold, the set is bounded and small, or the
-cost is already paid upstream.
+Refutation to attempt: the path is cold, the set is bounded and small, the
+child is not memoised so identity does not matter, or the cost is already paid
+upstream.
 
 ## state-of-the-art
 
