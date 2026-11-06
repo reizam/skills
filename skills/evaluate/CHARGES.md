@@ -23,9 +23,32 @@ Return, per finding:
 - what breaks, and the input or state that breaks it;
 - the refutation you attempted and why it failed;
 - the smallest change that answers it;
-- proposed rank: `blocking`, `to fix`, or `noted`.
+- its rank, read off the ladder below.
 
 Evidence is an executable command or a quoted excerpt. Never a paraphrase.
+
+### The rank ladder
+
+Rank by **who acts wrongly because of it, and how soon** — not by how ugly the
+code is:
+
+- `blocking` — a person or the system meets wrong or unsafe behaviour on a path
+  this change ships: data lost, or leaked across a tenant or a permission; a
+  crash; a flow that no longer completes; a gate that turns CI red.
+- `to fix` — someone acts wrongly because of it: a caller trusts a doc comment,
+  a type or an error class that says something false; a test on a high-risk
+  path cannot go red; a reader rebuilds what a helper already does; a resource
+  leaks on a path that repeats; the work claims a scope it does not cover.
+- `noted` — true, and nobody's next action changes: a name that misleads no
+  one, a style the tooling does not enforce, an improvement no caller needs yet,
+  a test elsewhere that cannot go red.
+
+A **high-risk path** is permissions, tenant isolation, money, data loss or a
+migration.
+
+When torn between two rungs, take the higher one and write in one line what
+argued for the lower. The convener can lower a rank by reading that line; a
+finding filed too low never reaches the fixer.
 
 ## coherence
 
@@ -40,6 +63,13 @@ the ones to prosecute: the error type that must be thrown instead of a bare
 one, the logger that must be used instead of `console`, the dependency
 direction between layers, the file naming the project insists on, the
 subsystems it has removed and forbids reintroducing.
+
+Where the project documents no rule for what the diff does, try it against the
+smell baseline of Fowler's *Refactoring*, ch. 3: **Mysterious Name**, **Feature
+Envy**, **Data Clumps**, **Primitive Obsession**, **Repeated Switches**,
+**Shotgun Surgery**, **Divergent Change**, **Message Chains**, **Refused
+Bequest**. A documented rule always wins over a smell, and a smell is `noted`
+unless it makes someone act wrongly.
 
 On a spec: the contradiction to hunt is with a decision already taken — a rule
 in those instructions, a ruling recorded in an issue, an architecture the spec
@@ -73,9 +103,21 @@ case is structurally unreachable.
 
 ## proof
 
-Judge whether the tests discriminate. Run the suite the change claims, then
-**revert the change and require red.** A test that passes both ways proves
-nothing, and three failure modes all read as correct while doing it:
+Judge whether the tests discriminate. CI answers whether they pass; this count
+answers whether they would fail on the bug, and answers it by **reading**:
+
+1. Read the test changes before the source changes.
+2. For each changed branch, name the test and the assertion that would go red
+   if the branch were reverted, quoting both. A branch no assertion reaches is
+   the finding.
+3. When the adapter names a mutation report for the diff, judge each surviving
+   mutant the same way.
+
+Run tests only on a high-risk path — permissions, tenant isolation, money, data
+loss, a migration — and only where reading leaves the answer open: one revert of
+that branch, the test files that cover it, no build. Everywhere else the reading
+is the evidence, quoted. A test that passes both ways proves nothing, and three
+failure modes all read as correct while doing it:
 
 - the **complacent mock** ignores the parameter the change adds, so the new
   path is never exercised;
@@ -83,8 +125,8 @@ nothing, and three failure modes all read as correct while doing it:
   repaired state;
 - the **incomplete double** omits a method of the interface it claims.
 
-Read the test changes before the source changes: an assertion edited to match
-newly broken behaviour is the highest-rank finding this count can return.
+An assertion edited to match newly broken behaviour is the highest-rank finding
+this count can return.
 
 A guard needs both cases — one test that it refuses, one that it still allows.
 Without the second, an over-broad guard passes everything.
@@ -95,10 +137,11 @@ data loss — with no test going red when it is reverted is `blocking`.
 Then weigh every test the change adds or deletes. A test earns its place by
 going **red** on a bug a user would hit: the regression the change fixes, a
 change to stable public behaviour, a high-risk path. Name that bug for each
-added test; a test with no bug to name is a `to fix` — delete it.
+added test; a test with no bug to name is deleted. Every finding in this
+paragraph and the list below is `noted`, and `to fix` on a high-risk path.
 
 - **Search first.** An existing case that already goes red on the same bug
-  makes the new one a twin: `to fix`, delete it.
+  makes the new one a twin: delete it.
 - **Regression in place.** A regression is one case in the file that already
   covers the behaviour, named for the behaviour it pins.
 - **Public seam, exact values.** The test drives the public seam and asserts
@@ -106,7 +149,7 @@ added test; a test with no bug to name is a `to fix` — delete it.
   clock, third-party SDKs). A double of the project's own code, an assertion
   that checks only presence or type, and an **echo** — an expected value
   computed by the code under test or pasted from a run of it — each let the
-  bug through: `to fix`.
+  bug through.
 - **Pruning is progress.** A deleted test that could not go red on any
   plausible bug is a gain. Challenge a deletion only when its bug is left with
   no other test going red on it.
@@ -233,7 +276,9 @@ On the screen, look for:
 - **weight** — a heavy dependency or a whole library imported on the first
   route where a lazy import or a smaller module would do;
 - **leaks** — a listener, timer, subscription or observer never released; a
-  cache or map that only grows.
+  cache or map that only grows. A cleanup line the diff deletes — an
+  `unsubscribe`, `clearTimeout`, `removeEventListener`, `close`, `release` — is
+  a leak until the code shows who releases it now.
 
 Prefer deletion to addition: the strongest finding this count returns is work
 that should not happen at all. Quote the path's frequency with the finding —

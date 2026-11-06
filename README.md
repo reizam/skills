@@ -16,7 +16,7 @@ One copy on disk, three agents reading it. `git pull` updates all of them.
 | [`/aim`](skills/aim) | Turns a loose intention into a brief an autonomous run can be trusted with — a terminal state that is a command, a verification loop, a journal, and all three stopping conditions. Refuses the work that does not belong in a loop. |
 | [`/animate`](skills/animate) | Makes a short demo video that reads as credible rather than as AI slop — every figure computed from the repository, every interface reproduced from its real design tokens, verified on a contact sheet before it renders. |
 | [`/brainstorm`](skills/brainstorm) | Runs superpowers' design dialogue to its written spec, then tries that spec with `/evaluate` before a line of code exists. |
-| [`/evaluate`](skills/evaluate) | Tries a pull request, a branch or a spec before you trust it. One sealed juror per count the target calls for (the UI gets `experience`, shared state gets `concurrency`), instructed in parallel; returns one ranked verdict and writes nothing. |
+| [`/evaluate`](skills/evaluate) | Tries a pull request, a branch or a spec before you trust it. One sealed juror per count the target calls for (the UI gets `experience`, shared state gets `concurrency`), instructed in parallel; returns one verdict ranked by who would act wrongly, and writes nothing. Reads the project from [`docs/agents/review.md`](#adapting-evaluate-to-a-project). |
 | [`/pair`](skills/pair) | Pairs live with the developer at the keyboard — codes the recommendation first, hands it over with what to observe, commits each retained step, and runs the toolchain and `/evaluate` once on their go. |
 | [`/land`](skills/land) | Lands every open pull request, one per loop iteration: a red head goes to a fixer subagent, a green head to one solo juror (`/evaluate`'s `SOLO.md`), a go is merged, and a dangerous change — migration, permissions, billing, CI, public contract — is put to you as merge, hold or close. Run as `/loop /land`. |
 | [`/prune`](skills/prune) | Finds the tests whose time, flakiness or upkeep outweighs what they alone catch, and cuts them — each promise probed by breaking the source, a lone witness folded into a surviving test first, every deletion written down as a trade. Scouts a suite, audits every test in it, or cuts one candidate. |
@@ -26,6 +26,24 @@ One copy on disk, three agents reading it. `git pull` updates all of them.
 `/brainstorm` requires `superpowers:brainstorming`, and `/animate` requires the
 HyperFrames CLI plus its `hyperframes` and `faceless-explainer` skills
 (`npx hyperframes skills`). Everything else stands alone.
+
+## Adapting `/evaluate` to a project
+
+`/evaluate` works with nothing but `git`. A project tells it more in
+`docs/agents/review.md`; every line is optional:
+
+```markdown
+# Review
+
+- Forge: GitLab — `glab mr view <N>`, `glab mr diff <N>`, `glab ci status`
+- Rule files: `AGENTS.md`, `docs/conventions.md`
+- Screen paths: `apps/web/**`, `packages/ui/**`
+- Mutation report: the `mutation` CI job's `reports/mutation/mutation.json`
+```
+
+Without it, the forge defaults to `gh` on GitHub, the rule files to `AGENTS.md`
+and `CLAUDE.md`, the screen to the definition in the skill, and `coherence`
+falls back to Fowler's smells where no rule is written.
 
 ## Naming
 
