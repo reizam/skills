@@ -89,4 +89,4 @@ Apply the verdict with `/evaluate`'s ranks: `blocking` and `to fix` are one
 more checkpoint each and the gate runs again; `noted` is reported and left to
 the developer. Squash the checkpoints only if the branch has not been pushed.
 Close by naming what the gate covered and each checkpoint no test reaches,
-then hand the branch to `/land` or a pull request.
+then open a pull request.
