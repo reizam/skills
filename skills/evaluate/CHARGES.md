@@ -23,9 +23,32 @@ Return, per finding:
 - what breaks, and the input or state that breaks it;
 - the refutation you attempted and why it failed;
 - the smallest change that answers it;
-- proposed rank: `blocking`, `to fix`, or `noted`.
+- its rank, read off the ladder below.
 
 Evidence is an executable command or a quoted excerpt. Never a paraphrase.
+
+### The rank ladder
+
+Rank by **who acts wrongly because of it, and how soon** — not by how ugly the
+code is:
+
+- `blocking` — a person or the system meets wrong or unsafe behaviour on a path
+  this change ships: data lost, or leaked across a tenant or a permission; a
+  crash; a flow that no longer completes; a gate that turns CI red.
+- `to fix` — someone acts wrongly because of it: a caller trusts a doc comment,
+  a type or an error class that says something false; a test on a high-risk
+  path cannot go red; a reader rebuilds what a helper already does; a resource
+  leaks on a path that repeats; the work claims a scope it does not cover.
+- `noted` — true, and nobody's next action changes: a name that misleads no
+  one, a style the tooling does not enforce, an improvement no caller needs yet,
+  a test elsewhere that cannot go red.
+
+A **high-risk path** is permissions, tenant isolation, money, data loss or a
+migration.
+
+When torn between two rungs, take the higher one and write in one line what
+argued for the lower. The convener can lower a rank by reading that line; a
+finding filed too low never reaches the fixer.
 
 ## coherence
 
@@ -40,6 +63,13 @@ the ones to prosecute: the error type that must be thrown instead of a bare
 one, the logger that must be used instead of `console`, the dependency
 direction between layers, the file naming the project insists on, the
 subsystems it has removed and forbids reintroducing.
+
+Where the project documents no rule for what the diff does, try it against the
+smell baseline of Fowler's *Refactoring*, ch. 3: **Mysterious Name**, **Feature
+Envy**, **Data Clumps**, **Primitive Obsession**, **Repeated Switches**,
+**Shotgun Surgery**, **Divergent Change**, **Message Chains**, **Refused
+Bequest**. A documented rule always wins over a smell, and a smell is `noted`
+unless it makes someone act wrongly.
 
 On a spec: the contradiction to hunt is with a decision already taken — a rule
 in those instructions, a ruling recorded in an issue, an architecture the spec
@@ -73,9 +103,21 @@ case is structurally unreachable.
 
 ## proof
 
-Judge whether the tests discriminate. Run the suite the change claims, then
-**revert the change and require red.** A test that passes both ways proves
-nothing, and three failure modes all read as correct while doing it:
+Judge whether the tests discriminate. CI answers whether they pass; this count
+answers whether they would fail on the bug, and answers it by **reading**:
+
+1. Read the test changes before the source changes.
+2. For each changed branch, name the test and the assertion that would go red
+   if the branch were reverted, quoting both. A branch no assertion reaches is
+   the finding.
+3. When the adapter names a mutation report for the diff, judge each surviving
+   mutant the same way.
+
+Run tests only on a high-risk path — permissions, tenant isolation, money, data
+loss, a migration — and only where reading leaves the answer open: one revert of
+that branch, the test files that cover it, no build. Everywhere else the reading
+is the evidence, quoted. A test that passes both ways proves nothing, and three
+failure modes all read as correct while doing it:
 
 - the **complacent mock** ignores the parameter the change adds, so the new
   path is never exercised;
@@ -83,8 +125,8 @@ nothing, and three failure modes all read as correct while doing it:
   repaired state;
 - the **incomplete double** omits a method of the interface it claims.
 
-Read the test changes before the source changes: an assertion edited to match
-newly broken behaviour is the highest-rank finding this count can return.
+An assertion edited to match newly broken behaviour is the highest-rank finding
+this count can return.
 
 A guard needs both cases — one test that it refuses, one that it still allows.
 Without the second, an over-broad guard passes everything.
@@ -95,10 +137,11 @@ data loss — with no test going red when it is reverted is `blocking`.
 Then weigh every test the change adds or deletes. A test earns its place by
 going **red** on a bug a user would hit: the regression the change fixes, a
 change to stable public behaviour, a high-risk path. Name that bug for each
-added test; a test with no bug to name is a `to fix` — delete it.
+added test; a test with no bug to name is deleted. Every finding in this
+paragraph and the list below is `noted`, and `to fix` on a high-risk path.
 
 - **Search first.** An existing case that already goes red on the same bug
-  makes the new one a twin: `to fix`, delete it.
+  makes the new one a twin: delete it.
 - **Regression in place.** A regression is one case in the file that already
   covers the behaviour, named for the behaviour it pins.
 - **Public seam, exact values.** The test drives the public seam and asserts
@@ -106,7 +149,7 @@ added test; a test with no bug to name is a `to fix` — delete it.
   clock, third-party SDKs). A double of the project's own code, an assertion
   that checks only presence or type, and an **echo** — an expected value
   computed by the code under test or pasted from a run of it — each let the
-  bug through: `to fix`.
+  bug through.
 - **Pruning is progress.** A deleted test that could not go red on any
   plausible bug is a gain. Challenge a deletion only when its bug is left with
   no other test going red on it.
@@ -119,29 +162,136 @@ red on; a case that names none is struck from the plan.
 Refutation to attempt: the test does fail without the change, on a path you had
 not run.
 
+## experience
+
+Prosecute what a person meets on the screen the change touches. Walk it the way
+they would — arrive, wait, act, fail, come back — and read the code for each
+moment. Read the project's UI rules first: its agent instructions and the
+design-system guide they point at are the standard, and a finding cites the
+rule it breaks.
+
+- **States** — each surface the change renders has its loading, empty, error
+  and partial states, each shaped like its neighbours' (the skeleton where they
+  show one, the project's empty-state pattern where they use one). A write
+  shows its result at once and, when the server refuses, rolls back with a
+  message the person can act on.
+- **Keyboard** — every action reachable without a mouse; Enter, Escape, Tab
+  and the arrow keys do what the neighbouring surfaces make them do; a
+  shortcut the change adds collides with none already bound.
+- **Focus** — after open, close, submit, delete and undo, focus lands where the
+  person's next gesture is; a dialog traps it and gives it back.
+- **Names** — every control carries an accessible name; an icon-only button
+  carries a label and a tooltip where its neighbours carry one.
+- **Copy** — every string goes through the project's translations, present in
+  every locale it ships, worded like its neighbours and by the project's copy
+  rules.
+- **Theme** — colours, spacing and type come from the design tokens; the
+  surface holds in dark mode and at the narrowest width the project supports.
+- **Shape** — the pattern the project prefers where it has one: inline before
+  modal, the existing primitive before a new one, the neighbour's layout
+  before a new arrangement.
+
+Evidence is the line that renders the moment, beside the neighbour or the rule
+that sets the standard. A screenshot or a run in the browser is welcome when
+the stack serves one; the code excerpt is still owed.
+
+Rank by the person's loss: an action they cannot complete or a write they lose
+is `blocking`; a state that misleads, a dead key or a missing translation is
+`to fix`; a spacing or wording drift is `noted`.
+
+On a spec: the charge is a screen the document describes without its states,
+its keyboard path, or the copy it shows.
+
+Refutation to attempt: the state cannot occur on this path, the neighbour sets
+the same behaviour, or the rule does not cover this surface.
+
+## concurrency
+
+Prosecute what breaks when two things happen at once. For each trigger the
+target trips, name the two actors — two tabs, two users, a person and a job, a
+stream and an edit, a retry and its original — and play their interleavings
+against the code until one corrupts, loses or duplicates something.
+
+- **Order** — a response that lands after a newer one and overwrites it; a
+  stream event applied over an optimistic edit the person just made; a list
+  refetched mid-mutation that brings back what was just removed.
+- **Stale reads** — a value read, then written back after someone else changed
+  it, with no version, condition or lock between; a cache entry kept past the
+  write that invalidates it; a closure holding state from an earlier render.
+- **Double effects** — a submit fired twice, a job delivered twice, a retry
+  after a timeout that had in fact succeeded: each must land once, through an
+  idempotency key, a unique constraint or a guard.
+- **Rollback** — an optimistic update whose undo restores the state from
+  before a second, unrelated update and erases it.
+- **Leases and locks** — a lock taken and never released on the error path; a
+  lease that expires mid-work while the holder keeps writing; a fencing token
+  that the write never checks.
+- **Lifecycle** — a request still in flight when its screen unmounts or its
+  session ends, writing into state nobody owns.
+
+Evidence is the interleaving written out step by step, each step quoting the
+line it runs, ending on the state it leaves. A test that forces the order is
+the strongest evidence; the interleaving with line excerpts is the minimum.
+
+On a spec: the charge is a shared value the design writes from two places
+without saying which wins.
+
+Refutation to attempt: a constraint, version or lock already serialises the
+two actors, the path runs on a single actor by construction, or the second
+write is identical to the first.
+
 ## performance
 
 Prosecute the cost the change adds, on the path it actually runs on. Establish
-that path first — per request, per record, per render, per boot — because a
-cost paid once at boot is not a charge.
+that path first — per request, per record, per render, per keystroke, per
+streamed chunk, per boot — because a cost paid once at boot is not a charge.
+Try the server and the screen alike: a change that touches a component is
+judged on what it makes the browser do, not only on what it asks the API.
 
-Look for: a query inside a loop; a query with no bound and no page; a filter
-applied in application code over rows the database could have excluded; a
-column filtered or joined with no index; a cache read that was removed or whose
-key now varies per call; a synchronous call added to a request path; in React,
-a value rebuilt every render that feeds a memo, a context whose value identity
-changes on every parent render, an effect that synchronises what derived state
-would have given free.
+On the server, look for: a query inside a loop; a query with no bound and no
+page; a filter applied in application code over rows the database could have
+excluded; a column filtered or joined with no index; a cursor or offset that
+rescans what it already read; a cache read that was removed or whose key now
+varies per call; a synchronous call added to a request path; a job that wakes
+for nothing.
+
+On the screen, look for:
+
+- **re-renders** — a component subscribed to a whole store or query when it
+  reads one field; a context whose value identity changes on every parent
+  render; an object, array or callback rebuilt every render that feeds a memo,
+  a dependency array or a memoised child; a parent state that re-renders a
+  long list on each keystroke or each streamed chunk; a `key` that changes and
+  remounts a subtree;
+- **effects** — an effect that synchronises what derived state would have
+  given free, or that sets state and renders twice;
+- **lists** — a long list rendered whole where its neighbours virtualise;
+- **network** — a request waterfall a single call or a parallel fetch would
+  have avoided; a query key that varies per render and refetches; a poll that
+  outlives its screen or ignores the project's polling helper; a refetch storm
+  on focus or reconnect;
+- **main thread** — heavy work in render (sorting, parsing, diffing a large
+  set) that belongs in a memo, a worker or the server; a layout read inside a
+  write loop;
+- **weight** — a heavy dependency or a whole library imported on the first
+  route where a lazy import or a smaller module would do;
+- **leaks** — a listener, timer, subscription or observer never released; a
+  cache or map that only grows. A cleanup line the diff deletes — an
+  `unsubscribe`, `clearTimeout`, `removeEventListener`, `close`, `release` — is
+  a leak until the code shows who releases it now.
 
 Prefer deletion to addition: the strongest finding this count returns is work
-that should not happen at all.
+that should not happen at all. Quote the path's frequency with the finding —
+"once per streamed chunk, about 30 times a second" — since the rank follows it.
 
 On a spec: the charge is a design whose cost grows with something unbounded —
 per-record fan-out, a full scan hidden behind a convenient API, a write
-amplified across every tenant.
+amplified across every tenant, a screen that re-renders with every event of a
+stream.
 
-Refutation to attempt: the path is cold, the set is bounded and small, or the
-cost is already paid upstream.
+Refutation to attempt: the path is cold, the set is bounded and small, the
+child is not memoised so identity does not matter, or the cost is already paid
+upstream.
 
 ## state-of-the-art
 

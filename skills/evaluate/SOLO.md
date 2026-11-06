@@ -1,7 +1,8 @@
 # Solo
 
 The single-juror form of `/evaluate`: one subagent, one ranked verdict. The
-convener chooses the counts; standalone, that is all nine from `SKILL.md` §2.
+convener chooses the counts; standalone, that is every count `SKILL.md` §2
+seats on the target.
 
 The measured fact still holds: findings come from reading each count on its
 own, not from a general look. A solo juror pays for that by **sequence** — it

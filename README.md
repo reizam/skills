@@ -14,11 +14,29 @@ One copy on disk, three agents reading it. `git pull` updates all of them.
 | Skill | What it does |
 |---|---|
 | [`/brainstorm`](skills/brainstorm) | Runs superpowers' design dialogue to its written spec, then tries that spec with `/evaluate` before a line of code exists. |
-| [`/evaluate`](skills/evaluate) | Tries a pull request, a branch or a spec before you trust it. Nine jurors, one count each, instructed in parallel and sealed from one another; returns one ranked verdict and writes nothing. |
+| [`/evaluate`](skills/evaluate) | Tries a pull request, a branch or a spec before you trust it. One sealed juror per count the target calls for (the UI gets `experience`, shared state gets `concurrency`), instructed in parallel; returns one verdict ranked by who would act wrongly, and writes nothing. Reads the project from [`docs/agents/review.md`](#adapting-evaluate-to-a-project). |
 | [`/pair`](skills/pair) | Pairs live with the developer at the keyboard — codes the recommendation first, hands it over with what to observe, commits each retained step, and runs the toolchain and `/evaluate` once on their go. |
 | [`/innovate`](skills/innovate) | Takes a half-formed idea, opens three genuinely distinct directions, weighs each honestly, and rules on the one that ships — ending on a single decision. |
 
 `/brainstorm` requires `superpowers:brainstorming`. Everything else stands alone.
+
+## Adapting `/evaluate` to a project
+
+`/evaluate` works with nothing but `git`. A project tells it more in
+`docs/agents/review.md`; every line is optional:
+
+```markdown
+# Review
+
+- Forge: GitLab — `glab mr view <N>`, `glab mr diff <N>`, `glab ci status`
+- Rule files: `AGENTS.md`, `docs/conventions.md`
+- Screen paths: `apps/web/**`, `packages/ui/**`
+- Mutation report: the `mutation` CI job's `reports/mutation/mutation.json`
+```
+
+Without it, the forge defaults to `gh` on GitHub, the rule files to `AGENTS.md`
+and `CLAUDE.md`, the screen to the definition in the skill, and `coherence`
+falls back to Fowler's smells where no rule is written.
 
 ## Naming
 
